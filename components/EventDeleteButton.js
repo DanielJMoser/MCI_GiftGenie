@@ -1,36 +1,35 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, View, TouchableOpacity } from "react-native";
 
-const EventDeleteButton = ({ onPress }) => {
+const EventDeleteButton = ({ onPress , style}) => {
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, style]}>
       <TouchableOpacity style={styles.button} onPress={onPress}>
-        <Text style={styles.text}>Person aus Event löschen</Text>
+        <Ionicons name="trash" size={24} color="#ff0000" />
       </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  srceen: {
-    flex: 1,
+  screen: {
     alignItem: "center",
     justifyContent: "center",
   },
   button: {
+    width: 50,
+    height: 50,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 4,
-    elevation: 3,
     backgroundColor: "#ffd9d9",
-    borderRadius: 20,
+    borderRadius: 25,
+    position: "absolute",
+    left: 20,
+    top: 20,
   },
   text: {
     fontSize: 16,
     lineHeight: 21,
-    // fontWeight: "bold",
     letterSpacing: 0.25,
     color: "red",
   },

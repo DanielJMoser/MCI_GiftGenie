@@ -1,6 +1,8 @@
 import 'react-native-get-random-values';
 import { v4 as generateUniqueKey } from 'uuid';
 
+import {DEFAULTPERSONCATEGORY} from "../data/PersonCategoryData";
+
 export class Person {
     constructor(name, birthday, category, image, interests, key) {
         if (!key) {
@@ -17,8 +19,12 @@ export class Person {
         } else {
             this._birthday = tempBirthday;
         }
+        if (!category) {
+            this.category = DEFAULTPERSONCATEGORY.description;
+        } else {
+            this._category = category;
+        }
 
-        this._category = category;
         this._image = image;
         this._interests = interests;
     }

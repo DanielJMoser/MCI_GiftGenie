@@ -2,7 +2,6 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import Navigator from "./Navigator";
 import Colors from "../constants/colors";
 import { StyleSheet } from "react-native";
-import MainScreen from "../screens/MainScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import LogoTitle from "../components/LogoTitle";
 import MenuButton from "../components/MenuButton";

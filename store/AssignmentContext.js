@@ -48,7 +48,6 @@ function AssignmentContextProvider({ children }) {
       ).then(() => {});
     } else {
       setAssignments(GIFTASSIGNMENTS); // TODO: restore test data during testing only
-      console.log("setting dummy assignments");
     }
   }, [assignments]);
 

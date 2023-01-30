@@ -5,6 +5,7 @@ import EventDetailScreen from "../screens/EventDetailScreen";
 import Colors from "../constants/colors";
 import PersonDetailScreen from "../screens/PersonDetailScreen";
 import PersonOverviewScreen from "../screens/PersonOverviewScreen";
+import PresentManageScreen from "../screens/PresentManageScreen";
 
 const MainStackNavigator = createStackNavigator();
 
@@ -13,7 +14,6 @@ function MainStack() {
     
     <MainStackNavigator.Navigator
       screenOptions={{
-        //headerMode: 'screen',
         initialRouteName: "Main Overview",
         headerTintColor: Colors.primary500,
         headerTitleAlign: "center",
@@ -33,6 +33,16 @@ function MainStack() {
       <MainStackNavigator.Screen
                     name="Person Details"
                     component={PersonDetailScreen}/>
+      <MainStackNavigator.Screen
+                name="Add Present"
+                component={PresentManageScreen}
+                options={{ headerShown: false }}
+            />
+      <MainStackNavigator.Screen
+        name="Event Details"
+        component={EventDetailScreen}
+        options={{ headerShown: true }}
+      />
 
     </MainStackNavigator.Navigator>
   );

@@ -1,60 +1,99 @@
-import React from 'react';
-import { View, FlatList, StyleSheet, Image, TouchableOpacity, Alert, Text } from 'react-native';
+import React, {useLayoutEffect} from 'react';
+import {View, FlatList, StyleSheet, Alert} from 'react-native';
 import PresentItem from '../components/PresentItem';
-import WebsiteButton from '../components/WebsiteButton';
 import Colors from '../constants/colors';
-import { PRESENTS } from '../data/PresentData';
-import { GIFTASSIGNMENTS } from '../data/GiftAssignmentData';
-
+import { PresentsContext } from '../store/PresentsContext';
+import { PersonsContext } from "../store/PersonsContext";
+import { useContext } from 'react';
+import {AssignmentContext} from "../store/AssignmentContext";
+import {GiftAssignment} from "../models/GiftAssignment";
 
 
 function PresentDetailScreen(props) {
 
     const presentKey = props.route.params.presentKey;
-    const assignmentKey = props.route.params.assignmentKey;
-    
 
-    const DisplayPresent = PRESENTS.filter( (present) => {
+
+    const presentsCtx = useContext(PresentsContext);
+    const assignmentsCtx = useContext(AssignmentContext);
+    const assignments = assignmentsCtx.assignments;
+    const presentsArray = presentsCtx.presents;
+    const personsCtx = useContext(PersonsContext);
+    const persons = personsCtx.persons;
+
+    const [isEditingMode, setIsEditingMode] = React.useState(false);
+
+
+
+    const presentAssignedTo = assignments.filter( (assignment) => {
+        return assignment.presentKey === presentKey;
+    }).map( (assignment) => {
+        return persons.find( (person) => {
+            return person._key === assignment._person;
+        });
+    });
+
+
+    const DisplayPresent = presentsCtx.presents.filter( (present) => {
         return present._key === presentKey;
     });
 
-    const presentAssignedTo = GIFTASSIGNMENTS.forEach( (assignment) => {
-        if (assignment._gift._key === presentKey) {
-            return assignment._person._key;
-        }
-    });
 
     const assignGift = (personKey, presentKey) => {
-        const newAssignment = new GIFTASSIGNMENTS(personKey, presentKey);
-        GIFTASSIGNMENTS.push(newAssignment);
+        const newAssignment = new GiftAssignment(presentKey, personKey, null);
+        assignmentsCtx.addAssignment(newAssignment);
     }
 
-    
 
 
-    function renderPresent (PresentData, presentAssignedTo, assignGift) {
+    useLayoutEffect(() => {
+        const TabNavigator = props.navigation.getParent();
+        TabNavigator.setOptions({
+            headerRight: null,
+        });
+    });
 
+    function renderPresent (PresentData, assignments, isEditingMode) {
+
+        if (isEditingMode) {
+            return (
+                <PresentItem
+                    title={PresentData.item.name}
+                    imageURL={PresentData.item.image}
+                    price={PresentData.item.price}
+                    seenAt={PresentData.item.store}
+                    link={PresentData.item.link}
+                    status={PresentData.item.status}
+                    presentKey={PresentData.item._key}
+                    LongPress={() => {
+                        deletePresent();
+                    }}
+                />
+            );
+        }
+
+        else {
         return (
+
+
 
             <PresentItem
                 title={PresentData.item.name}
                 imageURL={PresentData.item.image}
                                                 
+                
                 price={PresentData.item.price}
                 seenAt={PresentData.item.store}
                 link={PresentData.item.link}
-
-                presentAssigned= {presentAssignedTo}
-
-                onSelect={() => {
-                    props.navigation.navigate('PresentItem', {presentKey: PresentData.item._key, presentAssignedTo: presentAssignedTo});
-                }}
+                status={PresentData.item.status}
+                presentKey={PresentData.item._key}
                 LongPress={() => {
                     deletePresent();
                 }}
             />
         );
-    }  
+    }
+    }
     
 
     const deletePresent = () => {
@@ -84,6 +123,7 @@ function PresentDetailScreen(props) {
                 keyExtractor={item => item._key}
                 renderItem={renderPresent}
             />
+
                             
         </View>
     );
@@ -121,4 +161,3 @@ const styles = StyleSheet.create({
         width: '100%',
     }
 });
-

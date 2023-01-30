@@ -2,7 +2,7 @@ import {createStackNavigator} from "@react-navigation/stack";
 import PersonOverviewScreen from "../screens/PersonOverviewScreen";
 import PersonDetailScreen from "../screens/PersonDetailScreen";
 import Colors from "../constants/colors";
-
+import ContactSelectionScreen from "../screens/ContactSelectionScreen";
 
 const PersonStackNavigator = createStackNavigator();
 
@@ -24,6 +24,9 @@ function PersonStack() {
                 <PersonStackNavigator.Screen
                     name="Person Details"
                     component={PersonDetailScreen}/>
+                <PersonStackNavigator.Screen
+                    name="Contact Selection"
+                    component={ContactSelectionScreen}/>
             </PersonStackNavigator.Navigator>
     );
 }

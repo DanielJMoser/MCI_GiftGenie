@@ -49,7 +49,6 @@ function EventsContextProvider({ children }) {
       );
     } else {
       setEvents(EVENTS); // TODO: restore test data during testing only
-      console.log("setting dummy data");
     }
   }, [events]);
 

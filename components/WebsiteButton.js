@@ -1,17 +1,21 @@
 
 import React from 'react';
-import { StyleSheet, Text, View, TouchableNativeFeedback} from 'react-native';
+import { TouchableNativeFeedback} from 'react-native';
 import Colors from '../constants/colors';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const WebsiteButton = ( props ) => {
 
     const { onPress, title = "WebsiteRedirect" } = props;
 
+    // This button should redirect to an online shop
     const content = (
-        <View style={styles.button}>
-            <Text style={styles.text}>{title}</Text>
-        </View>
+        <Ionicons
+            name="cart-outline"
+            size={30}
+            color={Colors.accent500}
+        />
     );
 
   return (
@@ -23,26 +27,5 @@ const WebsiteButton = ( props ) => {
         
     );
 };
-
-const styles = StyleSheet.create({
-    button: {
-        backgroundColor: Colors.accent500,
-        paddingVertical: 12,
-        paddingHorizontal: 30,
-        borderRadius: 25,
-        length: 200,
-        width: 250,
-        marginTop: 10,
-        
-    },
-    text: {
-        color: 'white',
-        textAlign: 'center',
-        fontSize: 18,
-    },
-});
-
-
-
 
 export default WebsiteButton;

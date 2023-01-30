@@ -1,12 +1,11 @@
 import { useState, useContext } from "react";
 import {
   StyleSheet,
-  Text,
   View,
   FlatList,
   useWindowDimensions,
+  ScrollView,
 } from "react-native";
-import EventDeleteButton from "./EventDeleteButton";
 import Paginator from "./Paginator";
 import PersonScrollCardItem from "./PersonScrollCardItem";
 import { PersonsContext } from "../store/PersonsContext";
@@ -39,12 +38,26 @@ const PersonScrollCard = ({ data, isEditing }) => {
     uniquepersonlist.push({
       _key: "0",
       _name: "Add People to this Event",
-      _image: "../assets/default-person-image.png",
+      _image: null,
     });
   }
+
+  const DeletePersonHandler = () => {
+    const currentPersonID = uniquepersonlist[selectedPerson];
+    const currentEventID = data._key;
+    const assignmentsToDelete = assignments.filter((assignment) => {
+      return (
+        assignment._person === currentPersonID &&
+        assignment._event === currentEventID
+      );
+    });
+    assignmentsToDelete.forEach((assignment) => {
+      assignmentContext.removeAssignment(assignment);
+    });
+  };
   return (
     <View style={styles.screen}>
-      <View style={styles.flatlistContainer}>
+      <ScrollView contentContainerStyle={styles.flatlistContainer}>
         <FlatList
           style={styles.flatlist}
           data={uniquepersonlist}
@@ -53,6 +66,7 @@ const PersonScrollCard = ({ data, isEditing }) => {
               item={item}
               eventID={data._key}
               isEditing={isEditing}
+              personDeleteHandler={DeletePersonHandler}
             />
           )}
           horizontal
@@ -63,8 +77,7 @@ const PersonScrollCard = ({ data, isEditing }) => {
             setSelectedPerson(event.nativeEvent.contentOffset.x / width);
           }}
         />
-      </View>
-      {isEditing && <EventDeleteButton />}
+      </ScrollView>
       <Paginator
         style={styles.paginator}
         data={uniquepersonlist}
@@ -92,7 +105,6 @@ const styles = StyleSheet.create({
   },
 
   flatlist: {
-    //backgroundColor: "white",
   },
   flatlistContainer: {
     width: "100%",

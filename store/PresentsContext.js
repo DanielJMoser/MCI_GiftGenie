@@ -3,7 +3,6 @@ import { Present } from "../models/Present";
 import { PRESENTS } from "../data/PresentData";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-
 export const PresentsContext = createContext({
     presents: [],
     addPresent: (present) => {},
@@ -12,13 +11,9 @@ export const PresentsContext = createContext({
 });
 
 
-    // ---------------------------------------------- //
-
-
-
 function PresentsContextProvider( {children} ) {
 
-    //const presentsStorageKey = 'presents';
+    const presentsStorageKey = 'presents';
     
     const [presents, setPresents] = useState([]);
 
@@ -28,7 +23,7 @@ function PresentsContextProvider( {children} ) {
 
     function removePresent (present) {
         setPresents((currentPresents) =>
-            currentPresents.filter((currentPresent) => currentPresent.key !== present.key)
+            currentPresents.filter((currentPresent) => currentPresent._key !== present._key)
         );
     }
 
@@ -41,10 +36,6 @@ function PresentsContextProvider( {children} ) {
         })
     }
 
-
-    // ---------------------------------------------- //
-
-/*
     useEffect(() => {
         let presentsSaved;
         AsyncStorage.getItem(presentsStorageKey).then((value) => {
@@ -54,14 +45,14 @@ function PresentsContextProvider( {children} ) {
         });
         if (presents.length > 0) {
             const presentsJson = JSON.stringify(presents);
-            if (presentsJson !== presentsSaved) { // only save when there are changes
+            if (presentsJson !== presentsSaved) {
                 AsyncStorage.setItem(presentsStorageKey, presentsJson).then(() => { })
             }
         } else {
-            setPresents(PRESENTS);    // TODO: restore test data during testing only
+            setPresents(PRESENTS);
         }
     }, [presents]);
-
+    
     useEffect(() => {
         AsyncStorage.getItem(presentsStorageKey).then((value) => {
             if (value) {
@@ -72,7 +63,6 @@ function PresentsContextProvider( {children} ) {
         });
     }, []); 
 
-*/
     // ---------------------------------------------- //  
 
 
@@ -84,11 +74,9 @@ function PresentsContextProvider( {children} ) {
     }
 
 
-    return <PresentsContext.Provider value={{value}}>
+    return <PresentsContext.Provider value={value}>
                 {children}
             </PresentsContext.Provider>
 }
 
 export default PresentsContextProvider;
-
-

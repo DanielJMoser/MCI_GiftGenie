@@ -1,47 +1,38 @@
-import React, { useContext, useLayoutEffect, useState } from "react";
-import { View, StyleSheet, Button, Alert } from "react-native";
+import React, {useContext, useEffect, useLayoutEffect, useState} from "react";
+import { View, StyleSheet, Button} from "react-native";
 import PersonScrollCard from "../components/PersonScrollCard";
 import Colors from "../constants/colors";
 import EditButton from "../components/EditButton";
 import { useFocusEffect } from "@react-navigation/native";
 import { EventsContext } from "../store/EventsContext";
-const defaultImage = "../assets/default-person-image.png";
 
 const EventDetailScreen = ({ route, navigation }) => {
   const DoneButtonHandler = () => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Button
-          title="Edit"
-          onPress={EditButtonHandler}
-          color={Colors.primary400}
-        />
-      ),
-    });
     setIsEditing(false);
   };
 
   const EditButtonHandler = () => {
-    Alert.alert("Editing Gift Assingments is not implemented yet.");
-    return;
     setIsEditing(true);
-    navigation.setOptions({
-      headerRight: () => (
-        <Button
-          title="Done"
-          onPress={DoneButtonHandler}
-          color={Colors.primary400}
-        />
-      ),
-    });
   };
+
   const [isEditing, setIsEditing] = useState(false);
   const eventsContext = useContext(EventsContext);
   const eventsArray = eventsContext.events;
-  const event = eventsArray.find((event) =>{
-    
-    return event._key === route.params});
-  
+  const event = eventsArray.find((event) => {
+    return event._key === route.params;
+  });
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+          <Button
+              title= {isEditing ? "Done" : "Edit"}
+              onPress={ isEditing ? DoneButtonHandler : EditButtonHandler}
+              color={Colors.primary400}
+          />
+      ),
+    });
+  }, [isEditing]);
+
   useFocusEffect(
     React.useCallback(() => {
       const tabNavigator = navigation.getParent();
@@ -59,7 +50,6 @@ const EventDetailScreen = ({ route, navigation }) => {
   return (
     <View style={styles.screen}>
       <PersonScrollCard data={event} isEditing={isEditing} />
-      {/* <Text style={styles.titleText}>{route.params._name}</Text> */}
     </View>
   );
 };

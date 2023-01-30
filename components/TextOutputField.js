@@ -31,9 +31,9 @@ const styles = StyleSheet.create({
         fontSize: 15
     },
     invalidLabel : {
-        color: 'palevioletred'
+        color: Colors.error
     },
     invalidInput: {
-        backgroundColor: 'palevioletred'
+        backgroundColor: Colors.error
     },
 });

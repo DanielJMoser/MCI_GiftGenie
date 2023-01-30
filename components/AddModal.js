@@ -2,42 +2,44 @@ import {
   StyleSheet,
   Modal,
   Button,
-  SafeAreaView,
   View,
   Text,
   TextInput,
 } from "react-native";
-import DatePicker from "react-native-datepicker";
 
 import Colors from "../constants/colors";
 import { useContext, useState } from "react";
 import { EventsContext } from "../store/EventsContext";
 import { Event } from "../models/Event";
-import { GESCHENKE } from "../data/GeschenkData";
-import { MultipleSelectList } from "react-native-dropdown-select-list";
 import { PersonsContext } from "../store/PersonsContext";
-
-//DUMMY:
-// eventContext.addEvent(
-//   new Event(
-//     "testevent",
-//     "2021-01-01",
-//     "testcategory",
-//     [PERSONS[0]],
-//     [GESCHENKE[0]],
-//     100
-//   )
-// );
+import { PresentsContext} from "../store/PresentsContext";
 
 const AddModal = ({ cancelHandler, visible, setVisible }) => {
   const [selectedPersons, setSelectedPersons] = useState([]);
   const [selectedGifts, setSelectedGifts] = useState([]);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
-  const [date, setDate] = useState("2022-12-24");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [budget, setBudget] = useState(0);
   const eventContext = useContext(EventsContext);
+  const presentsCtx = useContext(PresentsContext);
   const saveButtonHandler = () => {
+    if (new Date(date).toString() === "Invalid Date") {
+      alert("Invalid Date");
+      return;
+    }
+    if (name.trim().length === 0) {
+      alert("Invalid Name");
+      return;
+    }
+    if (category.trim().length === 0) {
+      alert("Invalid Category");
+      return;
+    }
+    if (budget < 0 || isNaN(budget)) {
+      alert("Invalid Budget");
+      return;
+    }
     eventContext.addEvent(
       new Event(name, date, category, selectedPersons, selectedGifts, budget)
     );
@@ -47,7 +49,7 @@ const AddModal = ({ cancelHandler, visible, setVisible }) => {
   const persons = personContext.persons.map((item) => {
     return { key: item._key, value: item._name };
   });
-  const gifts = GESCHENKE.map((item) => {
+  const gifts = presentsCtx.presents.map((item) => {
     return { key: item._key, value: item._name };
   });
   return (
@@ -62,16 +64,10 @@ const AddModal = ({ cancelHandler, visible, setVisible }) => {
         </View>
         <View style={styles.textContainer}>
           <Text>Date: </Text>
-          <DatePicker
-            date={date} //initial date from state
-            mode="date" //The enum of date, datetime and time
-            placeholder="select date"
-            format="YYYY-MM-DD"
-            confirmBtnText="Confirm"
-            cancelBtnText="Cancel"
-            onDateChange={(date) => {
-              setDate(date);
-            }}
+          <TextInput
+            style={styles.input}
+            value={date}
+            onChangeText={(newDate) => setDate(newDate)}
           />
         </View>
         <View style={styles.textContainer}>
@@ -81,22 +77,6 @@ const AddModal = ({ cancelHandler, visible, setVisible }) => {
             onChangeText={(newCategory) => setCategory(newCategory)}
           />
         </View>
-        {/* <View style={styles.textContainer}>
-          <Text>Persons: </Text>
-          <MultipleSelectList
-            setSelected={setSelectedPersons}
-            data={persons}
-            save="id"
-          />
-        </View>
-        <View style={styles.textContainer}>
-          <Text>Gifts: </Text>
-          <MultipleSelectList
-            setSelected={setSelectedGifts}
-            data={gifts}
-            save="id"
-          />
-        </View> */}
         <View style={styles.textContainer}>
           <Text>Budget: </Text>
           <TextInput
@@ -106,8 +86,8 @@ const AddModal = ({ cancelHandler, visible, setVisible }) => {
           />
         </View>
         <View style={styles.button}>
-          <Button title="Cancel" onPress={cancelHandler} />
-          <Button title="Save" onPress={saveButtonHandler} />
+          <Button title="Cancel" color={Colors.primary400} onPress={cancelHandler} />
+          <Button title="Save" color={Colors.primary400} onPress={saveButtonHandler} />
         </View>
       </View>
     </Modal>
@@ -119,9 +99,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 100,
     paddingLeft: 50,
-    // marginLeft: 50,
-    // alignItems: "flex-start",
-    // justifyContent: "center",
     backgroundColor: Colors.accent300,
   },
   input: {

@@ -17,7 +17,7 @@ const MenuButton = ({ onPress }) => {
 };
 
 const styles = StyleSheet.create({
-  srceen: {
+  screen: {
     flex: 1,
     alignItem: "center",
     justifyContent: "center",

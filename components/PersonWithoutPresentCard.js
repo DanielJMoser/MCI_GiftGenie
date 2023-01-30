@@ -1,12 +1,33 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Colors from "../constants/colors";
 import ProgressiveImage from "./ProgressiveImage";
+import {AssignmentContext} from "../store/AssignmentContext";
+import {useContext} from "react";
 
 const defaultImage = '../assets/default-person-image.png';
 
+function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+}
+
+
 const PersonWithoutPresentCard = (props) => {
     const person = props.person;
+    const assignmentContext = useContext(AssignmentContext);
+    const assignments = assignmentContext.assignments;
+
+    const numberOfGifts = (assignments, personKey) => {
+        const theseGifts = assignments.filter(
+            (assignment) => assignment._person === personKey
+        );
+        const unique = theseGifts
+            .map((assignment) => assignment._gift)
+            .filter(onlyUnique);
+        return unique.length;
+    };
+
     return (
+        
         <TouchableOpacity
         style={{ ...styles.screen, ...props.style }}
         onPress={() => props.onSelect(person)}
@@ -25,7 +46,7 @@ const PersonWithoutPresentCard = (props) => {
                 >{person.name}
                 </Text>
             </View>
-        </TouchableOpacity>
+        </TouchableOpacity> 
     );
     };
 
@@ -55,6 +76,5 @@ const PersonWithoutPresentCard = (props) => {
             backgroundColor: Colors.accent500,
         }
     });
-    
 
 export default PersonWithoutPresentCard;

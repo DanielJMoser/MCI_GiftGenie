@@ -1,5 +1,5 @@
+import 'react-native-get-random-values';
 import { v4 as generateUniqueKey } from 'uuid';
-
 
 export class Present {
 
@@ -9,19 +9,6 @@ export class Present {
         } else {
             this._key = key;
         }
-
-        if (!barcode) {
-            this.barcode = null;
-        } else {
-            this.barcode = barcode;
-        }
-
-        if (!status) {
-            this.status = null;
-        } else {
-            this.status = status;
-        }
-            
 
         this._name = name;
         this._price = price;
@@ -97,9 +84,11 @@ export class Present {
     set status(value) {
         this._status = value;
     }
-
-    get key() {
-        return this._key;
-    }
 }
+
+Present.fromObj = (obj) => {
+    return new Present (obj._name, obj._price, obj._category, obj._image, obj._store,
+        obj._link, obj._barcode, obj._status, obj._key);
+};
+
 

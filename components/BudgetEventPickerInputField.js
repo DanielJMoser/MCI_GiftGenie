@@ -44,6 +44,8 @@ const styles = StyleSheet.create({
     inputContainer: {
         marginHorizontal: 4,
         marginVertical: 12,
+        width: '75%',
+        alignItem: 'center',
     },
     label: {
         fontSize: 16,
@@ -63,7 +65,7 @@ const styles = StyleSheet.create({
         fontsize: 18,
     },
     pickerContainer: {
-        width: '150%',
+        width: '130%',
         backgroundColor: Colors.primary400,
         padding: 6,
         borderRadius: 6,
@@ -73,9 +75,9 @@ const styles = StyleSheet.create({
         overflow: "hidden",
     },
     invalidLabel: {
-        color: 'palevioletred'
+        color: Colors.error
     },
     invalidInput: {
-        backgroundColor: 'palevioletred'
+        backgroundColor: Colors.error
     },
 });

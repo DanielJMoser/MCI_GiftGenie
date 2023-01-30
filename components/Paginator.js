@@ -5,7 +5,7 @@ const Paginator = ({ data, index, style }) => {
     return (
       <View style={[{ flexDirection: "row", height: 40 }, style]}>
         {data.map((_, i) => {
-          const activeBackgroud = i === index ? "#fff" : "#555";
+          const activeBackgroud = i === Math.ceil(index) ? "#fff" : "#555";
           return (
             <View
               style={[styles.dot, { backgroundColor: activeBackgroud }]}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { BarCodeScanner } from "expo-barcode-scanner";
-import { StyleSheet, Text, View, Modal } from "react-native";
+import { StyleSheet, Text, View, Modal, TouchableOpacity } from "react-native";
 import Colors from "../constants/colors";
 import { Audio } from "expo-av";
 import * as Haptics from "expo-haptics";
@@ -25,8 +25,6 @@ export const BarCodeModal = (props) => {
     await sound.playAsync();
   }
   const handleBarCodeScanned = ({ type, data }) => {
-    //setScanned(true);
-    // alert(`Bar code with type ${type} and data ${data} has been scanned!`);
     playSound();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     props.setVisible(false);
@@ -42,9 +40,8 @@ export const BarCodeModal = (props) => {
         alert("Barcode not found in Database. Please try different article...");
         return;
       }
-      console.log(data.items);
-      const result = data.items[0].title;
-      alert(result);
+      const title = data.items[0].title;
+      props.setDataBarCode(data.items[0]);
     } catch (error) {
       console.log("could not fetch data." + " error: " + JSON.stringify(error));
     }
@@ -64,13 +61,14 @@ export const BarCodeModal = (props) => {
           onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
           style={StyleSheet.absoluteFillObject}
         />
-
-        {/* {scanned && (
-          <Button
-            title={"Tap to Scan Again"}
-            onPress={() => setScanned(false)}
-          />
-        )} */}
+        {props.visible && (
+          <TouchableOpacity
+            onPress={() => props.setVisible(false)}
+            style={styles.cancelButton}
+          >
+            <Text style={{ color: Colors.primary400 }}>Cancel</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </Modal>
   );
@@ -81,9 +79,17 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 100,
     paddingLeft: 50,
-    // marginLeft: 50,
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "center",
     backgroundColor: Colors.primary400,
+  },
+  cancelButton: {
+    position: "absolute",
+    bottom: 100,
+    right: "44%",
+    backgroundColor: Colors.accent500,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 50,
   },
 });

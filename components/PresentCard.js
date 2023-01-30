@@ -1,20 +1,14 @@
-import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
+import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 
 import Colors from '../constants/colors';
 import React from 'react';
-import { PRESENTS } from '../data/PresentData';
-import { PresentsContext } from '../store/PresentsContext';
-import { PersonsContext } from '../store/PersonsContext';
-import { AssignmentContext } from '../store/AssignmentContext';
-import { GiftAssignment } from '../models/GiftAssignment';
+import ProgressiveImage from "./ProgressiveImage";
 
 const defaultImage = '../assets/present.png';
 
-
-
 function PresentCard(props) {
 
-    const presents = PRESENTS.find(present => present._key === props.present._key);
+    //const presents = PRESENTS.find(present => present._key === props.present._key);
 
     return (
         <TouchableOpacity
@@ -23,9 +17,10 @@ function PresentCard(props) {
             onLongPress={() => props.onLongPress(props.present)}
         >
 
-            <Image style={styles.image}
-                     source={{uri: presents.image}}
-                    resizeMode={'contain'}
+            <ProgressiveImage style={styles.image}
+                              uri={props.present.image}
+                              defaultSource={require(defaultImage)}
+                              resizeMode={'contain'}
             />
 
             <View style={styles.textContainer}>

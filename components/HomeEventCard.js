@@ -52,7 +52,6 @@ const EventCard = (props) => {
     <TouchableOpacity
       style={{ ...styles.screen, ...props.style }}
       onPress={() => {
-        console.log(event);
         props.onSelect(event);
       }}
       onLongPress={longPressHandler}

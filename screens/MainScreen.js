@@ -5,18 +5,15 @@ import Colors from "../constants/colors";
 import EventCard from "../components/EventCard";
 import { useContext, useState, useEffect } from "react";
 import { EventsContext } from "../store/EventsContext";
-import { PERSONS } from "../data/PersonData";
-import { GIFTASSIGNMENTS } from "../data/GiftAssignmentData";
 import PersonWithoutPresentCard from "../components/PersonWithoutPresentCard";
-import HomeEventCard from "../components/HomeEventCard";
 import {PersonsContext} from "../store/PersonsContext";
-import PersonCard from "../components/PersonCard";
 import AddButton from "../components/AddButton";
 import { useFocusEffect } from "@react-navigation/native";
 import React from "react";
 import AddMainModal from "../components/AddMainModal";
-import BudgetCard from "../components/BudgetCard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AssignmentContext } from "../store/AssignmentContext";
+import tabBarAttributes from "../constants/tabBarAttributes";
 
 export const saveBudgetCards = async (budgetCards) => {
   try {
@@ -28,12 +25,31 @@ export const saveBudgetCards = async (budgetCards) => {
 };
 
 const getTotalBudgetForCards = (budgetCards) => {
-    let sum = 0;
-    budgetCards.forEach((card) => {
-        sum += parseInt(card.props.budget);
-    });
-    return sum;
+  let sum = 0;
+  if (budgetCards && budgetCards.length > 0) {
+      budgetCards.forEach((card) => {
+          sum += parseFloat(card.props.budget);
+      });
+  }
+
+  return sum;
 };
+
+const getTotalBudgetLeftForCards = (budgetCards) => {
+  let sum = 0;
+  if (budgetCards && budgetCards.length > 0) {
+      budgetCards.forEach((card) => {
+          if (card.props.budgetLeft !== undefined) {
+              sum += parseFloat(card.props.budgetLeft);
+          } else {
+              sum += parseFloat(card.props.budget)
+          }
+      });
+  }
+
+  return parseFloat(sum);
+};
+
 
 const getCircularReplacer = () => {
   const seen = new WeakSet();
@@ -48,17 +64,15 @@ const getCircularReplacer = () => {
   };
 };
 
+
+
 const MainScreen = ({ navigation }) => {
-  /*const personsToDisplay = () => {
-    const personsWithoutPresent = PERSONS.filter((person) => {
-      return GIFTASSIGNMENTS.filter((giftAssignment) => {
-        return giftAssignment.personId === person._key;
-      }).length === 0;
-    });*/
+ 
     const [budgetCards, setBudgetCards] = useState([]);
-    const [totalGiftPrice, setTotalGiftPrice] = useState(0);
-    const totalBudget = getTotalBudgetForCards(budgetCards);
-    const budgetLeft = totalBudget - totalGiftPrice;
+    const [eventBudgetSum, setEventBudgetSum] = useState(0);
+    const totalBudget = getTotalBudgetForCards(budgetCards) + eventBudgetSum;
+    const budgetLeft = (getTotalBudgetLeftForCards(budgetCards));
+    const [dataFetched, setDataFetched] = useState(false);
 
     const personsContext = useContext(PersonsContext);
     const personsArray = personsContext.persons;
@@ -69,20 +83,56 @@ const MainScreen = ({ navigation }) => {
     const eventsContext = useContext(EventsContext);
     const eventsArray = eventsContext.events;
 
-    
+    const assignmentContext = useContext(AssignmentContext);
+    const assignments = assignmentContext.assignments;
 
-    const retrieveBudgetCards = async () => {
-      try {
-          const budgetCardsJson = await AsyncStorage.getItem("budgetCards");
-          let budgetCards = [];
-          if (budgetCardsJson) {
-              budgetCards = JSON.parse(budgetCardsJson);
-          }
-          return budgetCards;
-      } catch (error) {
-          console.error(error);
-      }
-  };
+
+
+    function onlyUnique(value, index, self) {
+      return self.indexOf(value) === index;
+  }
+
+  const fetchData = async () => {
+    try {
+        const budgetCardsJson = await AsyncStorage.getItem("budgetCards");
+        const budgetCards = JSON.parse(budgetCardsJson);
+        setBudgetCards(budgetCards);
+        setDataFetched(true);
+        getTotalBudgetLeftForCards(budgetCards);
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+useEffect(() => {
+    fetchData();
+}, []);
+
+useEffect(() => {
+    let sum = 0;
+    eventsArray.map((event) => {
+        if (isNaN(event._budget)) {
+            console.log(`Budget is not a number: ${event.budget}`)
+        } else {
+            sum += parseFloat(event._budget);
+        }
+    });
+    setEventBudgetSum(sum);
+}, [eventsArray]);
+
+  const retrieveBudgetCards = async () => {
+    try {
+        const budgetCardsJson = await AsyncStorage.getItem("budgetCards");
+        let budgetCards = [];
+        if (budgetCardsJson) {
+            budgetCards = JSON.parse(budgetCardsJson);
+        }
+        setBudgetCards(budgetCards);
+    } catch (error) {
+        console.error(error);
+    }
+};
+
 
   useEffect(() => {
       const retrieveBudget = async () => {
@@ -92,10 +142,13 @@ const MainScreen = ({ navigation }) => {
       retrieveBudget();
   }, []);
 
+  const refreshData = () => {
+    fetchData();
+}
+
   const personLongPressed = (person) => {
     // deleteConfirmationAlert(person, deletePerson, person.name, "person");
   };
-
   
 
   function AddButtonHandler() {
@@ -103,7 +156,6 @@ const MainScreen = ({ navigation }) => {
   }
 
   function ModalCancelHandler() {
-    console.log("Cancel");
     setShowAddModal(false);
   }
 
@@ -114,40 +166,41 @@ const MainScreen = ({ navigation }) => {
       tabNavigator.setOptions({
         headerRight: () => <AddButton onPress={AddButtonHandler} />,
         headerShown: true,
+        ...tabBarAttributes
       });
+      retrieveBudgetCards();
     }, [AddButtonHandler, AddButton, navigation])
   );
 
+  const numberOfGifts = (assignments, personKey) => {
+    const theseGifts = assignments.filter(
+        (assignment) => assignment._person === personKey
+    );
+    const unique = theseGifts
+        .map((assignment) => assignment._gift)
+        .filter(onlyUnique);
+    return unique.length;
+};
 
   const personSelected = (person) => {
     const personKey = person.key;
-    console.log(personKey);
-    navigation.navigate("Persons", 
-    //{
-    //  screen: "Person Details",
-    //  params: { personKey: personKey },
-    //}
+    navigation.navigate('Person Details', {personKey: personKey}
     );
   };
 
-  const getPersons = () => {
-    const personArr = [];
-    for (let i = 0; i < PERSONS.length; i++) {
-      if (!GIFTASSIGNMENTS.find((e) => e._person === PERSONS[i]._key)) {
-        personArr.push(PERSONS[i]);
-      }
-    }
-    return personArr.map((person, index) => {
-      return (
+
+
+  const getPersonsToDisplay = personsSorted.map( (person, index) => {
+    if (numberOfGifts(assignments, person._key) == 0) {
+    return(
         <PersonWithoutPresentCard
-          person={person}
-          onSelect={personSelected}
-          onLongPress={personLongPressed}
-          key={index}
+            person={person}
+            onSelect={personSelected}
+            onLongPress={personLongPressed}
+            key={index}
         />
-      );
-    });
-  };
+    );}
+});
 
   
 
@@ -155,17 +208,11 @@ const MainScreen = ({ navigation }) => {
     const eventKey = event._key;
     navigation.navigate("Calendar");
   };
-  
-  const eventsArraySorted = eventsArray.sort((a, b)=>{new Date(b._date) - new Date(a._date);})
  
-  const eventsToDisplay = eventsArraySorted.map((event, index) => {
+
+  const eventsToDisplayNew = eventsArray.map((event, index) => {
     return (
-      <HomeEventCard
-        style={styles.EventCardOverwrite}
-        eventKey={event._key}
-        key={index}
-        onSelect={eventSelected}
-      />
+      <EventCard eventKey={event._key} key={index} navigation={navigation} />
     );
   });
 
@@ -174,14 +221,14 @@ const MainScreen = ({ navigation }) => {
       <View style={styles.ViewScroll}>
         <Text style={styles.textStyles}>People without Present:</Text>
         <View style={styles.scrollView}>
-          <ScrollView>{getPersons()}</ScrollView>
+          <ScrollView>{getPersonsToDisplay}</ScrollView>
         </View>
       </View>
 
       <View style={styles.ViewScroll}>
         <Text style={styles.textStyles}>Upcoming Events:</Text>
         <View style={styles.scrollView}>
-          <ScrollView>{eventsToDisplay}</ScrollView>
+          <ScrollView>{eventsToDisplayNew}</ScrollView>
         </View>
       </View>
      
@@ -208,7 +255,7 @@ export default MainScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.primary500,
+    backgroundColor: Colors.primary400,
     alignItems: "center",
     justifyContent: "flex-start",
   },
@@ -220,7 +267,7 @@ const styles = StyleSheet.create({
     margin: 10,
     padding: 5,
     borderRadius: 10,
-    backgroundColor: Colors.primary400,
+    backgroundColor: Colors.primary500,
   },
   ViewScroll: {
     height: "43%",
@@ -235,5 +282,8 @@ const styles = StyleSheet.create({
   
   EventCardOverwrite: {
     backgroundColor: Colors.primary400,
+  },
+  TabBar: {
+    backgroundColor: Colors.primary500,
   },
 });

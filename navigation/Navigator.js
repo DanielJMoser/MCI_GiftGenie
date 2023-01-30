@@ -4,7 +4,6 @@ import Icon from "react-native-vector-icons/Ionicons";
 
 import Colors from "../constants/colors";
 
-import MainScreen from "../screens/MainScreen";
 import LogoTitle from "../components/LogoTitle";
 import PersonStackNavigator from "./PersonStackNavigator";
 import EventStackNavigator from "./EventStackNavigator";
@@ -12,6 +11,7 @@ import BudgetScreen from "../screens/BudgetScreen";
 import MenuButton from "../components/MenuButton";
 import PresentStack from "./PresentStackNavigator";
 import MainStackNavigator from "./MainStackNavigator";
+import tabBarAttributes from "../constants/tabBarAttributes";
 
 const Tab = createBottomTabNavigator();
 
@@ -26,10 +26,7 @@ function Navigator(props) {
         headerTitle: (props) => <LogoTitle {...props} />,
         headerLeft: () => <MenuButton onPress={props.navigation.openDrawer} />,
         headerTitleAlign: "center",
-        tabBarShowLabel: true,
-        tabBarStyle: styles.TabBar,
-        tabBarActiveTintColor: Colors.accent500,
-        tabBarActiveBackgroundColor: Colors.primary400,
+        ...tabBarAttributes
       }}
     >
       <Tab.Screen

@@ -21,9 +21,9 @@ const NumberOfPersons = (assignments, eventID) => {
 };
 
 const NumberofGifts = (assignments, eventID) => {
-  const theseGifts = assignments.filter(
-    (assignment) => assignment._event === eventID
-  );
+  const theseGifts = assignments
+    .filter((assignment) => assignment._event === eventID)
+    .filter((assignment) => assignment._gift !== "");
   const unique = theseGifts
     .map((assignment) => assignment._gift)
     .filter(onlyUnique);

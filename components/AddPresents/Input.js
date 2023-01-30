@@ -3,7 +3,7 @@ import Colors from '../../constants/colors';
 
 // Universal Input Component
 
-function Input({ label, textInputConfig }) {
+function Input({ label, textInputConfig, }) {
   return (
     <View style={styles.inputContainer}>
 
@@ -19,13 +19,11 @@ export default Input;
 const styles = StyleSheet.create({
 
   inputContainer: {
-    marginHorizonral: 4,
     marginVertical: 8,
   },
   label: {
     color: Colors.accent500,
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: 16,
     marginBottom: 4,
   },
   input: {
@@ -33,6 +31,6 @@ const styles = StyleSheet.create({
     color: Colors.accent300,
     padding: 6,
     borderRadius: 10,
-    fontSize: 10,
+    fontSize: 15,
   },
 });

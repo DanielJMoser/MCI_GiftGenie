@@ -107,6 +107,7 @@ function PersonForm({onSave, onSaveButton, defaultValues}) {
         options.push(PERSONCATEGORIES[i].description);
     }
 
+
     return <View>
         {!formIsValid &&
             <Text style={styles.errorText}>Invalid inputs!</Text>
@@ -161,7 +162,7 @@ export default PersonForm;
 const styles = StyleSheet.create({
     errorText: {
         textAlign: 'center',
-        color: 'palevioletred',
+        color: Colors.error,
         margin: 8
     },
     imageContainer:{

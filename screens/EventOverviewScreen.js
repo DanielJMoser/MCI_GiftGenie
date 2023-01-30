@@ -26,15 +26,8 @@ const EventOverviewScreen = ({ navigation, route }) => {
   }
 
   function ModalCancelHandler() {
-    console.log("Cancel");
     setShowAddModal(false);
   }
-
-  // useLayoutEffect(() => {
-  //   navigation.setOptions({
-  //     headerRight: () => <AddButton onPress={AddButtonHandler} />,
-  //   });
-  // }, [AddButtonHandler, AddButton, navigation]);
 
   useFocusEffect(
     React.useCallback(() => {

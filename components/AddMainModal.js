@@ -2,10 +2,8 @@ import {
     StyleSheet,
     Modal,
     Button,
-    SafeAreaView,
     View,
     Text,
-    TextInput,
     Pressable,
   } from "react-native";
  
@@ -13,9 +11,7 @@ import {
   import Colors from "../constants/colors";
   import { useContext, useState, useEffect, } from "react";
   import { EventsContext } from "../store/EventsContext";
-  import { Event } from "../models/Event";
-  import { GESCHENKE } from "../data/GeschenkData";
-  import { MultipleSelectList } from "react-native-dropdown-select-list";
+  import { PresentsContext} from "../store/PresentsContext";
   import { PersonsContext } from "../store/PersonsContext";
   import AddBudgetModal from "../components/AddBudgetModal";
   import AddModal from "../components/AddModal";
@@ -40,13 +36,15 @@ import {
     }
   
     function ModalCancelHandler() {
-      console.log("Cancel");
       setShowAddModal(false);
     }
-  
+    
+    const AddButtonPresentHandler = () => {
+      cancelHandler();
+      navigation.navigate('Add Present');
+  }
 
     function AddButtonBudgetHandler() {
-      console.log("AddButtonHandler");
       setShowAddBudgetModal(true);
   }
   function ModalCancelBudgetHandler() {
@@ -74,12 +72,12 @@ useEffect(() => {
   retrieveBudget();
 }, []);
     const eventContext = useContext(EventsContext);
-   
+    const presentsCtx = useContext(PresentsContext);
     const personContext = useContext(PersonsContext);
     const persons = personContext.persons.map((item) => {
       return { key: item._key, value: item._name };
     });
-    const gifts = GESCHENKE.map((item) => {
+    const gifts = presentsCtx.presents.map((item) => {
       return { key: item._key, value: item._name };
     });
     return (
@@ -88,7 +86,7 @@ useEffect(() => {
           <View style={styles.textContainer}>
             <Text style={styles.headerStyle}>What do you want to add: </Text>
             <View style={styles.buttonContainer}>
-            <Pressable title="Present" style={styles.buttonStyle}>
+            <Pressable title="Present" style={styles.buttonStyle} onPress={AddButtonPresentHandler}>
               <Text>Present</Text>
             </Pressable>
             <Pressable title="Present" style={styles.buttonStyle} onPress={AddButtonBudgetHandler}>
@@ -102,7 +100,7 @@ useEffect(() => {
             </Pressable>
             </View>
 
-            <Button title="Cancel" onPress={cancelHandler} />
+            <Button title="Cancel" color={Colors.primary400} onPress={cancelHandler} />
       
           </View>
           <AddBudgetModal
@@ -130,9 +128,6 @@ useEffect(() => {
       flex: 1,
       paddingTop: 100,
       paddingLeft: 50,
-      // marginLeft: 50,
-      // alignItems: "flex-start",
-      // justifyContent: "center",
       backgroundColor: Colors.accent300,
     },
     input: {

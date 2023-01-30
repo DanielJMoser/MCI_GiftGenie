@@ -1,17 +1,16 @@
-import { useLayoutEffect, useEffect, useState } from "react";
-import { View, TextInput, Button, Text, StyleSheet, Modal } from 'react-native';
+import {useEffect, useState, useContext} from "react";
+import { View, TextInput, Text, StyleSheet, Modal } from 'react-native';
 import Colors from "../constants/colors";
-import { PERSONS } from "../data/PersonData";
-import { EVENTS } from "../data/EventData";
 import PickerPersonInputField from "./BudgetPickerInputField";
 import PickerEventInputField from "./BudgetEventPickerInputField";
 import BudgetCard from "./BudgetCard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { v1 as uuidv1 } from 'uuid';
+import { AntDesign } from '@expo/vector-icons'; 
+import {EventsContext} from "../store/EventsContext";
+import {PersonsContext} from "../store/PersonsContext";
 
-//import { saveBudgetCards } from "../screens/BudgetScreen"
 
 const saveBudgetCards = async (budgetCards) => {
     try {
@@ -36,7 +35,11 @@ const getCircularReplacer = () => {
 };
 
 
-const EditBudgetModal = ({ budgetCards, setBudgetCards, selectedCard, setSelectedCard, budgetCard, giftIdProp, person, setShowEditModal, visible }) => {
+const EditBudgetModal = ({ budgetCards, setBudgetCards, selectedCard, setSelectedCard, budgetCard, giftIdProp, fetchData, setShowEditModal, visible }) => {
+    const eventsCtx = useContext(EventsContext);
+    const EVENTS = eventsCtx.events;
+    const personsCtx = useContext(PersonsContext);
+    const PERSONS = personsCtx.persons;
     const selectCard = budgetCards[selectedCard].props
     const [budgetState, setBudget] = useState(selectCard.budget);
     const [giftIdState, setGiftID] = useState(giftIdProp);
@@ -46,10 +49,12 @@ const EditBudgetModal = ({ budgetCards, setBudgetCards, selectedCard, setSelecte
     const [selectedPerson, setSelectedPerson] = useState(null);
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [availableValues, setAvailableValues] = useState(pickerValues);
+    const [selectedGifts, setSelectedGifts] = useState([]);
+    const [budgetLeft, setBudgetLeft] = useState(null);
+    const numberOfGifts = selectedGifts ? selectedGifts.length : 0;
+    const [giftIDEmpty, setGiftIDEmpty] = useState(false);
 
-
-
-    useLayoutEffect(() => {
+    useEffect(() => {
         AsyncStorage.getItem("budgetCards")
             .then((budgetCardsJson) => {
                 const budgetCards = JSON.parse(budgetCardsJson);
@@ -59,20 +64,31 @@ const EditBudgetModal = ({ budgetCards, setBudgetCards, selectedCard, setSelecte
                 setSelectedEvent(budgetCardBeingEdited.props.event)
                 setTitle(budgetCardBeingEdited.props.title)
                 setBudget(budgetCardBeingEdited.props.budget)
-                setSelectedPersons(budgetCardBeingEdited.props.names.split(', ').map(name => ({ name })))                
-                console.log("BUDGETCARDBEINGEDITED.PROPS.NAMES", budgetCardBeingEdited.props.names)
-                console.log("BUDGETCARDBEINGEDITED.PROPS",budgetCardBeingEdited.props)
+                setSelectedPersons(budgetCardBeingEdited.props.names.split(', ').map(name => ({ name })))          
+                setSelectedGifts(budgetCardBeingEdited.props.gifts);
+                if (budgetCardBeingEdited.props.giftID === '') {
+                    setGiftIDEmpty(true);
+                }
+                if (budgetCardBeingEdited.props.numberOfGifts === 0) {
+                    setGiftIDEmpty(true);
+                }
             })
             .catch((error) => {
                 console.error(error);
             });
     }, [budgetCard]);
 
+    useEffect(() => {
+        if (giftIDEmpty) {
+            setBudgetLeft(budgetState)
+        } else {
+            const sum = selectedGifts && selectedGifts.reduce((acc, gift) => acc + gift._price, 0);
+            const parsedSum = parseFloat(sum).toFixed(2);
+            setBudgetLeft((budgetState - sum).toFixed(2));
+        }
+    }, [selectedGifts, budgetState, giftIDEmpty]);
 
     useEffect(() => {
-        //setTitle(selectCard.title);
-        //setSelectedPerson(selectCard.person);
-        //setBudget(selectCard.budget);
         setGiftID(giftIdProp);
     }, []);
 
@@ -80,51 +96,67 @@ const EditBudgetModal = ({ budgetCards, setBudgetCards, selectedCard, setSelecte
     const pickerEventValues = EVENTS.map((event) => event._name);
 
     const saveHandler = () => {
-        const names = selectedPersons.map(person => person.name).join(', ');
-        const budgetCardId = uuidv1();
-        const personKeys = selectedPersons.map(person => person._key);
-        const newBudgetCard = (
-            <BudgetCard
-                person={selectedPerson}
-                personKeys={personKeys}
-                event={selectedEvent}
-                title={titleState}
-                names={names}
-                budget={budgetState}
-                budgetCardId={budgetCardId}
-                giftID={giftIdState}
-            />
-        );
-        const updatedBudgetCards = budgetCards.map((card, index) => index === selectedCard ? newBudgetCard : card);
+        if (selectedPersons.length === 0) {
+            alert("Select at least one person!");
+            return;
+        }
+        if (isNaN(parseFloat(budgetState))) {
+            alert("Budget must be a number!");
+            return;
+        }
+        const updatedBudgetCards = budgetCards.map(card => {
+            if (card.props.budgetCardId === selectCard.budgetCardId) {
+                return (
+                    <BudgetCard
+                        person={selectedPerson}
+                        event={selectedEvent}
+                        title={titleState}
+                        names={selectedPersons.map(person => person.name).join(', ')}
+                        budget={budgetState}
+                        budgetCardId={card.props.budgetCardId}
+                        giftID={giftIdState}
+                        gifts={selectedGifts}
+                        budgetLeft={budgetLeft}
+                        numberOfGifts={numberOfGifts}
+                    />
+                );
+            }
+            return card;
+        });
         setBudgetCards(updatedBudgetCards);
         setShowEditModal(false);
         saveBudgetCards(updatedBudgetCards);
     };
 
-
     function cancelHandler() {
-        console.log("Cancel");
         setShowEditModal(false);
-    }
-    const removePerson = (person) => {
-        setSelectedPersons(selectedPersons.filter(p => p !== person));
-        setAvailableValues([...availableValues, person.name]);
     }
 
 
     return (
-        console.log('selectedPersons:', selectedPersons),
-        <View>
+        <View style={{ alignItems: "flex-start", justifyContent: "flex-start", marginBottom: 20 }}>
             <Modal animationType="slide" visible={visible} transparent={false}>
+                <View style={styles.headerContainer}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <TouchableOpacity onPress={cancelHandler} style={{ marginLeft: 10, alignSelf: 'flex-start' }}>
+                            <AntDesign name="arrowleft" size={24} color="black" />
+                        </TouchableOpacity>
+                        <Text style={{ width: 0, flex: 1, textAlign: 'center', fontSize: 18, fontWeight: 'bold' }}> Edit a Card!</Text>
+                        <TouchableOpacity style={styles.saveButton} onPress={saveHandler}>
+                            <Ionicons name="save-outline" size={24} color={"white"} />
+                        </TouchableOpacity>
+                    </View>
+                </View>
                 <View style={styles.container}>
                     <View style={styles.textContainer}>
+                        <Text style={[styles.label]}>Edit Title here:</Text>
                         <TextInput
                             value={titleState}
                             placeholder="Enter your title"
-                            placeholderTextColor="primary500"
+                            placeholderTextColor="white"
                             style={styles.input}
                             onChangeText={(value) => setTitle(value)}
-                            color="primary500"
+                            color="white"
                         />
                             <PickerPersonInputField
                                 label="Add a Person here:"
@@ -140,22 +172,19 @@ const EditBudgetModal = ({ budgetCards, setBudgetCards, selectedCard, setSelecte
                             {selectedPersons.length > 0 ?
                                 selectedPersons.map((person, index) => (
                                     <View key={index} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text>{person.name}</Text>
+                                        <Text style={[styles.selectedPersons, { flex: 1, textAlign: 'center' }]}>{person.name}</Text>
                                         <View>
                                             <TouchableOpacity onPress={() => {
                                                 const updatedSelectedPersons = selectedPersons.filter(p => p.name !== person.name);
                                                 setSelectedPersons(updatedSelectedPersons);
                                             }}>
-                                                <Ionicons name="trash-outline" size={20} />
+                                                <Ionicons name="trash-outline" size={20} color='white' />
                                             </TouchableOpacity>
                                         </View>
                                     </View>
                                 ))
                                 : null
                             }
-
-
-
 
                         <PickerEventInputField
                             label="Edit Event here:"
@@ -165,31 +194,16 @@ const EditBudgetModal = ({ budgetCards, setBudgetCards, selectedCard, setSelecte
                             arrayOfValues={pickerEventValues}
 
                         />
-                        <Text style={[styles.label, { color: Colors.accent300, fontSize: 16 }]}>Edit Budget here:</Text>
+                        <Text style={[styles.label]}>Edit Budget here:</Text>
                         <TextInput
                             placeholder="Edit your budget"
-                            placeholderTextColor="primary500"
+                            placeholderTextColor="white"
                             keyboardType="numeric"
                             style={styles.input}
                             onChangeText={(value) => setBudget(value)}
-                            color="primary500"
-
-                            value={budgetState}
+                            color="white"
+                            value={budgetState.toString()}                       
                         />
-                    </View>
-                    <View style={styles.button}>
-                        <Button
-                            title="Save"
-                            onPress={saveHandler}
-                            color={Colors.accent500}
-                        />
-                        <View style={{ marginTop: 200 }}>
-                            <Button
-                                title="Cancel"
-                                onPress={cancelHandler}
-                                color={Colors.accent500}
-                            />
-                        </View>
                     </View>
                 </View>
             </Modal>
@@ -197,11 +211,25 @@ const EditBudgetModal = ({ budgetCards, setBudgetCards, selectedCard, setSelecte
         </View>
     );
 };
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
+        backgroundColor: Colors.primary500,
+    },
+    selectedPersons: {
+        color: 'white',
+        textAlign: 'center',
+    },
+    input: {
+        backgroundColor: Colors.primary400,
+        placeholderTextColor: 'white',
+        color: 'white',
+        padding: 6,
+        borderRadius: 6,
+        fontSize: 16,
+        width: '98%',
+        alignSelf: 'center',
     },
     title: {
         fontSize: 20,
@@ -212,10 +240,35 @@ const styles = StyleSheet.create({
         fontWeight: "400",
         textAlign: "center",
     },
-    separator: {
-        marginVertical: 30,
-        height: 1,
-        width: "80%",
+    closeButton: {
+        position: 'absolute',
+        top: 40,
+        left: 20,
+        zIndex: 1,
+    },
+    saveButton: {
+        borderRadius: 18,
+        backgroundColor: Colors.primary400,
+        padding: 6,
+        elevation: 3,
+    },
+    headerContainer: {
+        backgroundColor: Colors.accent500,
+        padding: 10,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative',
+    },
+    label: {
+        fontSize: 16,
+        color: Colors.accent300,
+        marginLeft: '1%',
+        marginBottom: 4,
+    },
+    textContainer: {
+        backgroundColor: Colors.primary500,
+        flex: 1,
+        marginTop: 10,
     },
 });
 export default EditBudgetModal;

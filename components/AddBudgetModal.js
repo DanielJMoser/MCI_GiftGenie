@@ -1,29 +1,41 @@
-import { useLayoutEffect, useState, useEffect } from "react";
-import { View, TextInput, Button, Text, StyleSheet, Modal } from 'react-native';
+import { useState, useEffect, useContext} from "react";
+import { View, TextInput, Text, StyleSheet, Modal, SafeAreaView } from 'react-native';
 import Colors from "../constants/colors";
 import BudgetCard from "./BudgetCard";
-import { PERSONS } from "../data/PersonData";
-import { EVENTS } from "../data/EventData";
 import PickerPersonInputField from "./BudgetPickerInputField";
 import PickerEventInputField from "./BudgetEventPickerInputField";
 import { v4 as generateUniqueKey } from 'uuid';
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AntDesign } from '@expo/vector-icons';
+import {PersonsContext} from "../store/PersonsContext";
+import {EventsContext} from "../store/EventsContext";
 
 
 const AddBudgetModal = ({ cancelHandler, visible, setCurrentBudget, setShowAddModal, budgetCards, setBudgetCards, setSelectedCard, setShowEditModal }) => {
-    const [inputValue, setInputValue] = useState('');
+    const eventsCtx = useContext(EventsContext);
+    const EVENTS = eventsCtx.events;
+    const personsCtx = useContext(PersonsContext);
+    const PERSONS = personsCtx.persons;
     const [title, setTitle] = useState('');
     const [budget, setBudget] = useState('');
     const [selectedPerson, setSelectedPerson] = useState([]);
     const [selectedPersons, setSelectedPersons] = useState([]);
     const [giftID, setGiftID] = useState("");
-    const [person, setPerson] = useState("");
     const [selectedEvent, setSelectedEvent] = useState(null);
 
     const pickerEventValues = EVENTS.map((event) => event._name);
     const pickerValues = PERSONS.filter(person => !selectedPersons.includes(person)).map(person => person.name);    
-    const saveHandler = () => {
+    const saveHandler = async () => {
+        if (selectedPersons.length === 0) {
+            alert("Select at least one person!");
+            return;
+        }
+        if (isNaN(parseFloat(budget))) {
+            alert("Budget must be a number!");
+            return;
+        }
         const names = selectedPersons.map(person => person.name).join(', ');
         const newBudgetCard = (
             <BudgetCard
@@ -34,31 +46,35 @@ const AddBudgetModal = ({ cancelHandler, visible, setCurrentBudget, setShowAddMo
                 budgetCardId={generateUniqueKey()}
                 title={title}
                 names={names}
-                // index={budgetCards.length}
                 budget={budget}
                 budgetCards={budgetCards}
                 setBudgetCards={setBudgetCards}
                 setSelectedCard={setSelectedCard}
                 setShowEditModal={setShowEditModal}
             />
-
         );
+        let existingBudgetCards = await AsyncStorage.getItem("budgetCards");
+        existingBudgetCards = JSON.parse(existingBudgetCards);
+        if (!existingBudgetCards) {
+            existingBudgetCards = [];
+        }
+        existingBudgetCards.push(newBudgetCard);
+        await AsyncStorage.setItem("budgetCards", JSON.stringify(existingBudgetCards));
         setBudgetCards([...budgetCards, newBudgetCard]);
         setSelectedPerson(null)
         setShowAddModal(false);
     };
 
+
     function cancelHandler() {
-        console.log("Cancel");
         setShowAddModal(false);
     }
-
 
     useEffect(() => {
         if (visible) {
             setTitle('');
             setBudget('');
-            setSelectedPerson(null);
+            setSelectedPersons([]);
             setSelectedEvent(null);
         }
     }, [visible]);
@@ -72,16 +88,28 @@ const AddBudgetModal = ({ cancelHandler, visible, setCurrentBudget, setShowAddMo
     return (
         <View>
             <Modal animationType="slide" visible={visible} transparent={false}>
-                <View style={styles.container}>
-                    <View style={styles.textContainer}>
-                        <TextInput
-                            placeholder="Enter your title"
-                            placeholderTextColor="primary500"
-                            style={styles.input}
-                            onChangeText={(value) => setTitle(value)}
-                            color="primary500"
-                        />
+                <SafeAreaView style={styles.headerContainer}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <TouchableOpacity onPress={cancelHandler} style={{ marginLeft: 10, alignSelf: 'flex-start' }}>
+                            <AntDesign name="arrowleft" size={24} color="black" />
+                        </TouchableOpacity>
+                        <Text style={{ width: 0, flex: 1, textAlign: 'center', fontSize: 18, fontWeight: 'bold' }}> Create a BudgetCard</Text>
+                        <TouchableOpacity style={styles.saveButton} onPress={saveHandler}>
+                            <Ionicons name="save-outline" size={24} color={"white"} />
+                        </TouchableOpacity>
+                    </View>
+                </SafeAreaView>
 
+                    <View style={styles.textContainer}>
+                        <View style={styles.labelContainer}>
+                            <Text style={styles.label}>Enter your Title here:</Text>
+                        </View>
+                        <TextInput
+                            placeholder="Enter your Title"
+                            placeholderTextColor="white"
+                            style={{ ...styles.input}}
+                            onChangeText={(value) => setTitle(value)}
+                        />
                         <PickerPersonInputField
                             label="Add a Person here:"
                             selectedValue={selectedPersons.map(person => person.name)}
@@ -96,20 +124,18 @@ const AddBudgetModal = ({ cancelHandler, visible, setCurrentBudget, setShowAddMo
                             <View>
                                 {selectedPersons.map(person => (
                                     <View key={person.name} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text>{person.name}</Text>
+                                        <Text style={[styles.selectedPersons, { flex: 1, textAlign: 'center' }]}>{person.name}</Text>
                                         <TouchableOpacity onPress={() => {
                                             const updatedSelectedPersons = selectedPersons.filter(p => p.name !== person.name);
                                             setSelectedPersons(updatedSelectedPersons);
                                         }}>
-                                            <Ionicons name="trash-outline" size={20} />
+                                            <Ionicons name="trash-outline" size={20} color={"white"} />
                                         </TouchableOpacity>
                                     </View>
                                 ))}
                             </View>
                             : null
                         }
-
-
                         <PickerEventInputField
                             label="Add an Event here:"
                             selectedValue={selectedEvent ? selectedEvent: ''}
@@ -117,31 +143,17 @@ const AddBudgetModal = ({ cancelHandler, visible, setCurrentBudget, setShowAddMo
                             arrayOfValues={pickerEventValues}
 
                         />
+                        <View style={styles.labelContainer}>
+                            <Text style={styles.label}>Enter your Budget here:</Text>
+                        </View>
                         <TextInput
-                            placeholder="Enter your budget"
-                            placeholderTextColor="primary500"
+                            placeholder="Enter your Budget"
+                            placeholderTextColor="white"
                             keyboardType="numeric"
                             style={styles.input}
                             onChangeText={(value) => setBudget(value)}
-                            color="primary500"
-
                         />
                     </View>
-                    <View style={styles.button}>
-                        <Button
-                            title="Save"
-                            onPress={saveHandler}
-                            color={Colors.accent500}
-                        />
-                        <View style={{ marginTop: 200 }}>
-                            <Button
-                                title="Cancel"
-                                onPress={cancelHandler}
-                                color={Colors.accent500}
-                            />
-                        </View>
-                    </View>
-                </View>
             </Modal>
         </View>
     );
@@ -149,10 +161,23 @@ const AddBudgetModal = ({ cancelHandler, visible, setCurrentBudget, setShowAddMo
 
 
 const styles = StyleSheet.create({
-    container: {
+    modalContainer: {
+        backgroundColor: Colors.accent500,
+    },
+    headerContainer: {
+        backgroundColor: Colors.accent500,
+        padding: 10,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative',
+    },
+    textContainer: {
+        backgroundColor: Colors.primary500,
         flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
+    },
+    selectedPersons: {
+        color: 'white',
+        textAlign: 'center',
     },
     title: {
         fontSize: 20,
@@ -167,6 +192,38 @@ const styles = StyleSheet.create({
         marginVertical: 30,
         height: 1,
         width: "80%",
+    },
+    backButton: {
+        position: 'absolute',
+        alignSelf: "flex-start",
+        top: 40,
+        left: 20,
+    },
+    saveButton: {
+        borderRadius: 18,
+        backgroundColor: Colors.primary400,
+        padding: 6,
+        elevation: 3,
+    },
+    input:{
+        backgroundColor: Colors.primary400,
+        placeholderTextColor: 'white',
+        color: 'white',
+        padding: 6,
+        borderRadius: 6,
+        fontSize: 16,
+        width: '98%',
+        alignSelf: 'center',
+    },
+    labelContainer: {
+        marginTop: "2%",
+        marginBottom: 8,
+        marginLeft: "1%",
+    },
+    label: {
+        fontSize: 16,
+        color: Colors.accent300,
+        marginBottom: 4,
     },
 });
 export default AddBudgetModal;

@@ -2,16 +2,27 @@ import {Platform, StyleSheet, Text, View} from "react-native";
 import Colors from "../constants/colors";
 import {Picker} from "@react-native-picker/picker";
 
-function PickerInputField({label, selectedValue, onValueChange, isInvalid, arrayOfValues}) {
-
+function PickerInputField({label, selectedValue, onValueChange, isInvalid, arrayOfValues, labelConfig, textConfig, containerConfig}) {
+    let labelConfiguration = [];
+    let textConfiguration = [];
+    let containerConfiguration = []
+    if (labelConfig) {
+        labelConfiguration = labelConfig;
+    }
+    if (textConfig) {
+        textConfiguration = textConfig;
+    }
+    if (containerConfig) {
+        containerConfiguration = containerConfig;
+    }
     return <View style={styles.inputContainer}>
-                <Text style={[styles.label, isInvalid && styles.invalidLabel]}>
+                <Text style={[ styles.label, isInvalid && styles.invalidLabel, labelConfiguration]}>
                      {label}
                 </Text>
-                <View style={[styles.pickerContainer, isInvalid && styles.invalidInput]}>
+                <View style={[styles.pickerContainer, isInvalid && styles.invalidInput, containerConfiguration]}>
                     <Picker
-                        style={styles.picker}
-                        itemStyle={styles.pickerItem}
+                        style={[styles.picker, textConfiguration]}
+                        itemStyle={[styles.picker, textConfiguration]}
                         dropdownIconColor={Colors.accent500}
                         dropdownIconRippleColor={Colors.accent300}
                         selectedValue={selectedValue}
@@ -21,7 +32,7 @@ function PickerInputField({label, selectedValue, onValueChange, isInvalid, array
                         }
                     >
                         {arrayOfValues.map((item, index) => {
-                            return (<Picker.Item label={item} value={item} key={index} style={styles.pickerItem} />)
+                            return (<Picker.Item label={item} value={item} key={index} style={[styles.pickerItem, textConfiguration]} />)
                         })}
                     </Picker>
                 </View>
@@ -45,26 +56,26 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary400,
         padding: 6,
         borderRadius: 6,
-        fontsize: 18,
+        fontSize: 18,
     },
     picker: {
         color: 'white',
         padding: 6,
-        fontsize: 18,
+        fontSize: 18,
     },
     pickerContainer: {
         backgroundColor: Colors.primary400,
         padding: 6,
-        borderRadius:6,
+        borderRadius: 6,
         fontsize: 18,
         height: Platform.OS === 'ios' ? 130 : 41,
         justifyContent: "center",
         overflow: "hidden"
     },
     invalidLabel : {
-        color: 'palevioletred'
+        color: Colors.error
     },
     invalidInput: {
-        backgroundColor: 'palevioletred'
+        backgroundColor: Colors.error
     },
 });

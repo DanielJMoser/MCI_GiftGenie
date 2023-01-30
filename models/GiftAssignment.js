@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import { v4 as generateUniqueKey } from "uuid";
 
 export class GiftAssignment {

@@ -1,48 +1,57 @@
 import { Person } from '../models/Person';
+import { Image } from 'react-native';
+
+import Ilona from '../assets/Ilona.jpg'
+import Clemens from '../assets/Clemens.jpg'
+import Tobias from '../assets/Tobias.png'
+import Nicolas from '../assets/Nicolas.jpg'
+import Samuel from '../assets/Samuel.png'
+import Daniel from '../assets/Daniel.jpg'
+
+const IlonaUri = Image.resolveAssetSource(Ilona).uri
+const ClemensUri = Image.resolveAssetSource(Clemens).uri
+const TobiasUri = Image.resolveAssetSource(Tobias).uri
+const NicolasUri = Image.resolveAssetSource(Nicolas).uri
+const SamuelUri = Image.resolveAssetSource(Samuel).uri
+const DanielUri = Image.resolveAssetSource(Daniel).uri
 
 const persons = [
     {
-        name: 'Alex VdB',
-        birthday: '1944-01-18',
+        name: 'Ilona',
+        birthday: '1992-07-07',
         category: 'family',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bundespr%C3%A4sident_Alexander_Van_der_Bellen.jpg/255px-Bundespr%C3%A4sident_Alexander_Van_der_Bellen.jpg'
+        image: IlonaUri
     },
     {
-        name: 'Wolfgang Amadeus Mozart',
-        birthday: '1956-01-27',
+        name: 'Clemens',
+        birthday: '2002-05-07',
         category: 'friends',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Croce-Mozart-Detail.jpg/330px-Croce-Mozart-Detail.jpg'
+        image: ClemensUri
     },
     {
-        name: "Lari",
-        birthday: '1992-07-10',
-        category: 'best friends',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Rise_Up%21_And_Dance_Premiere_Wien_02_Larissa_Marolt.jpg/1200px-Rise_Up%21_And_Dance_Premiere_Wien_02_Larissa_Marolt.jpg'
-    },
-    {
-        name: 'Marcel',
-        birthday: '1989-03-02',
-        category: 'best friends',
-        image: 'https://media.skigebiete-test.de/images/ecu/content/c_blogarticle/marcel-hirscher-beendet-karriere_n2414363-72685-1_l.jpg'
-    },
-    {
-        name: 'David',
-        birthday: '1992-06-24',
+        name: 'Tobias',
+        birthday: '1995-05-05',
         category: 'friends',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/20180610_FIFA_Friendly_Match_Austria_vs._Brazil_David_Alaba_850_1632.jpg/250px-20180610_FIFA_Friendly_Match_Austria_vs._Brazil_David_Alaba_850_1632.jpg'
+        image: TobiasUri
     },
     {
-        name: 'Mary',
-        birthday: '1977-05-13',
+        name: 'Nicolas',
+        birthday: '2000-07-22',
         category: 'friends',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Maria_Theresia_im_Spitzenbesetzten_Kleid.jpg/330px-Maria_Theresia_im_Spitzenbesetzten_Kleid.jpg'
+        image: NicolasUri
     },
     {
-        name: 'Niki Lauda',
-        birthday: null,
-        category: 'general',
-        image: null
-    }
+        name: 'Samuel',
+        birthday: '1994-01-26',
+        category: 'friends',
+        image: SamuelUri
+    },
+    {   
+        name: 'Daniel',
+        birthday: '2002-04-15',
+        category: 'friends',
+        image: DanielUri
+    },
 ];
 
 export const PERSONS = persons.map( (person) => new Person(person.name, person.birthday, person.category, person.image));
